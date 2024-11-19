@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>成语接龙挑战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 95%;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .current-idiom {
+            font-size: 28px;
+            color: #2c3e50;
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            animation: fadeIn 0.5s ease;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .option-btn {
+            padding: 20px;
+            font-size: 20px;
+            border: 2px solid #3498db;
+            border-radius: 12px;
+            background: white;
+            color: #3498db;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn:hover {
+            background: #3498db;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .option-btn.correct {
+            background: #2ecc71;
+            border-color: #2ecc71;
+            color: white;
+            animation: correctAnswer 0.5s ease;
+        }
+
+        .option-btn.wrong {
+            background: #e74c3c;
+            border-color: #e74c3c;
+            color: white;
+            animation: wrongAnswer 0.5s ease;
+        }
+
+        .start-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 15px 40px;
+            font-size: 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(52, 152, 219, 0.2);
+        }
+
+        .start-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .audio-control {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            backdrop-filter: blur(5px);
+            display: flex;
+            gap: 10px;
+        }
+
+        .audio-btn {
+            padding: 8px 15px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .audio-btn:hover {
+            background: #2980b9;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes correctAnswer {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes wrongAnswer {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        @media (max-width: 600px) {
+            .options {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .current-idiom {
+                font-size: 24px;
+            }
+
+            .option-btn {
+                padding: 15px;
+                font-size: 18px;
+            }
+        }
+
+        .difficulty-select {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-btn {
+            padding: 12px 25px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .difficulty-btn.easy {
+            background: #2ecc71;
+        }
+
+        .difficulty-btn.normal {
+            background: #3498db;
+        }
+
+        .difficulty-btn.hard {
+            background: #e67e22;
+        }
+
+        .difficulty-btn.extreme {
+            background: #e74c3c;
+        }
+
+        .difficulty-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .timer {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 24px;
+            color: #2c3e50;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .timer.warning {
+            color: #e74c3c;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="audio-control">
+        <button onclick="toggleMusic()" id="musicBtn" class="audio-btn">音乐：开</button>
+        <button onclick="toggleSound()" id="soundBtn" class="audio-btn">音效：开</button>
+    </div>
+    
+    <audio id="bgMusic" loop preload="auto">
+        <source src="audio/background.wav" type="audio/wav">
+    </audio>
+    <audio id="correctSound" preload="auto">
+        <source src="audio/correct.wav" type="audio/wav">
+    </audio>
+    <audio id="wrongSound" preload="auto">
+        <source src="audio/wrong.wav" type="audio/wav">
+    </audio>
+
+    <div class="container">
+        <h1>成语接龙挑战</h1>
+        <div class="stats-container">
+            <div class="stat-item">
+                <div class="stat-label">当前得分</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">题目进度</div>
+                <div class="stat-value"><span id="question-count">0</span>/100</div>
+            </div>
+        </div>
+        <div class="current-idiom" id="current-idiom"></div>
+        <div class="options" id="options"></div>
+        <button id="start-btn" class="start-btn">开始游戏</button>
+        <div class="difficulty-select">
+            <button class="difficulty-btn easy" onclick="setDifficulty('easy')">简单 (100题 9秒)</button>
+            <button class="difficulty-btn normal" onclick="setDifficulty('normal')">一般 (75题 7秒)</button>
+            <button class="difficulty-btn hard" onclick="setDifficulty('hard')">有点难 (50题 5秒)</button>
+            <button class="difficulty-btn extreme" onclick="setDifficulty('extreme')">超级难 (25题 2.5秒)</button>
+        </div>
+        <div id="timer" class="timer" style="display: none">
+            剩余时间：<span id="time-left">9.0</span>秒
+        </div>
+    </div>
+
+    <script>
+        // 成语数据库
+        const idiomsDB = {
+            "一帆风顺": ["顺水推舟", "顺手牵羊", "顺理成章", "顺势而为"],
+            "顺水推舟": ["舟车劳顿", "舟遥客远", "舟楫相配"],
+            "望子成龙": ["龙飞凤舞", "龙腾虎跃", "龙争虎斗", "龙马精神"],
+            "龙飞凤舞": ["舞文弄墨", "舞态生风", "舞姿翩翩"],
+            "守株待兔": ["兔死狐悲", "兔起鹘落", "兔走乌飞"],
+            "顺手牵羊": ["羊肠小道", "羊毛出在羊身上", "羊入虎口"],
+            "龙腾虎跃": ["跃跃欲试", "跃然纸上", "跃马扬鞭"],
+            "兔死狐悲": ["悲欢离合", "悲天悯人", "悲痛欲绝"],
+            "悲欢离合": ["合二为一", "合情合理", "合家欢乐"],
+            "跃跃欲试": ["试金石", "试探性", "试问当世"],
+            "舞文弄墨": ["墨守成规", "墨子泣丝", "墨迹未干"],
+            "顺理成章": ["章口就来", "章节分明", "章法严密"],
+            "羊肠小道": ["道路以目", "道高一尺", "道法自然"],
+            "合二为一": ["一举两得", "一箭双雕", "一鸣惊人"],
+            "墨守成规": ["规行矩步", "规模宏大", "规规矩矩"],
+            "一举两得": ["得意忘形", "得心应手", "得不偿失"],
+            "道高一尺": ["尺寸之功", "尺度以内", "尺短寸长"],
+            "龙马精神": ["神采飞扬", "神机妙算", "神通广大"],
+            "神采飞扬": ["扬眉吐气", "扬长而去", "扬名立万"],
+            "扬眉吐气": ["气势磅礴", "气贯长虹", "气象万千"],
+            "气势磅礴": ["礴然而止", "礴如充栋", "礴若千里"],
+            "一鸣惊人": ["人山人海", "人杰地灵", "人才辈出"],
+            "人山人海": ["海阔天空", "海市蜃楼", "海枯石烂"],
+            "海阔天空": ["空前绝后", "空谷兰", "空穴来风"],
+            "空前绝后": ["后起之秀", "后来居上", "后发制人"],
+            "后起之秀": ["秀外慧中", "秀色可餐", "秀色可餐"],
+            "秀外慧中": ["中庸之道", "中流砥柱", "中规中矩"],
+            "中庸之道": ["道貌岸然", "道听途说", "道德文章"],
+            "道貌岸然": ["然而可知", "然后知之", "然诺千金"],
+            "然而可知": ["知行合一", "知己知彼", "知书达理"],
+            "知行合一": ["一丝不苟", "一往无前", "一言九鼎"],
+            "一丝不苟": ["苟且偷生", "苟安一隅", "苟延残喘"],
+            "苟且偷生": ["生机勃勃", "生龙活虎", "生花妙笔"],
+            "生机勃勃": ["勃然大怒", "勃发向上", "勃然变色"],
+            "勃然大怒": ["怒发冲冠", "怒目而视", "怒气冲天"],
+            "怒发冲冠": ["冠冕堂皇", "冠绝一时", "冠盖相属"],
+            "冠冕堂皇": ["皇天后土", "皇亲国戚", "皇图霸业"],
+            "皇天后土": ["土崩瓦解", "土洋结合", "土生土长"],
+            "土崩瓦解": ["解甲归田", "解铃还须系铃人", "解疑释惑"],
+            "解甲归田": ["田园诗人", "田地肥沃", "田父献曝"],
+            "田园诗人": ["人生如梦", "人情世故", "人心不古"],
+            "人生如梦": ["梦寐以求", "梦想成真", "梦境成真"],
+            "梦寐以求": ["求同存异", "求贤若渴", "求全责备"],
+            "求同存异": ["异曲同工", "异军突起", "异想天开"],
+            "异曲同工": ["工力悉敌", "工欲善其事", "工夫不负有心人"],
+            "工力悉敌": ["敌众我寡", "敌进我退", "敌强我弱"],
+            "敌众我寡": ["寡不敌众", "寡言少语", "寡廉鲜耻"],
+            "寡不敌众": ["众志成城", "众所周知", "众矢之的"],
+            "众志成城": ["城门失火", "城下之盟", "城北徐公"]
+        };
+
+        let currentIdiom = '';
+        let score = 0;
+        let questionCount = 0;
+        let correctAnswer = '';
+        let TOTAL_QUESTIONS = 100;
+
+        const startBtn = document.getElementById('start-btn');
+        const currentIdiomDiv = document.getElementById('current-idiom');
+        const optionsDiv = document.getElementById('options');
+        const scoreSpan = document.getElementById('score');
+        const questionCountSpan = document.getElementById('question-count');
+
+        let isMusicOn = true;
+        let isSoundOn = true;
+        const bgMusic = document.getElementById('bgMusic');
+        const correctSound = document.getElementById('correctSound');
+        const wrongSound = document.getElementById('wrongSound');
+        const musicBtn = document.getElementById('musicBtn');
+        const soundBtn = document.getElementById('soundBtn');
+
+        let currentDifficulty = 'easy';
+        let timeLimit = 9000; // 默认9秒
+        let timeLeft = 0;
+        let timerInterval = null;
+
+        const difficultySettings = {
+            'easy': {
+                time: 9000,    // 9秒
+                questions: 100  // 100题
+            },
+            'normal': {
+                time: 7000,    // 7秒
+                questions: 75   // 75题
+            },
+            'hard': {
+                time: 5000,    // 5秒
+                questions: 50   // 50题
+            },
+            'extreme': {
+                time: 2500,    // 2.5秒
+                questions: 25   // 25题
+            }
+        };
+
+        startBtn.addEventListener('click', startGame);
+
+        function startGame() {
+            score = 0;
+            questionCount = 0;
+            scoreSpan.textContent = score;
+            questionCountSpan.textContent = questionCount;
+            startBtn.style.display = 'none';
+            document.querySelector('.difficulty-select').style.display = 'none';
+            
+            if (isMusicOn) {
+                bgMusic.play();
+            }
+            
+            setNewQuestion();
+        }
+
+        function setNewQuestion() {
+            questionCount++;
+            questionCountSpan.textContent = questionCount;
+            
+            // 重置计时器
+            startTimer();
+            document.getElementById('timer').classList.remove('warning');
+
+            // 随机选择一个成语作为当前成语
+            const idioms = Object.keys(idiomsDB);
+            currentIdiom = idioms[Math.floor(Math.random() * idioms.length)];
+            currentIdiomDiv.textContent = `当前成语：${currentIdiom}`;
+
+            // 获取正确答案和干扰项
+            const possibleAnswers = idiomsDB[currentIdiom];
+            correctAnswer = possibleAnswers[Math.floor(Math.random() * possibleAnswers.length)];
+
+            // 生成选项
+            const options = [correctAnswer];
+            const allIdioms = Object.values(idiomsDB).flat();
+            while (options.length < 4) {
+                const randomIdiom = allIdioms[Math.floor(Math.random() * allIdioms.length)];
+                if (!options.includes(randomIdiom)) {
+                    options.push(randomIdiom);
+                }
+            }
+
+            shuffleArray(options);
+            displayOptions(options);
+        }
+
+        function displayOptions(options) {
+            optionsDiv.innerHTML = '';
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.textContent = option;
+                button.addEventListener('click', () => checkAnswer(option, button));
+                optionsDiv.appendChild(button);
+            });
+        }
+
+        function checkAnswer(selectedAnswer, button) {
+            clearInterval(timerInterval); // 停止计时器
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(btn => btn.style.pointerEvents = 'none');
+
+            if (selectedAnswer === correctAnswer) {
+                playCorrectSound();
+                button.classList.add('correct');
+                score++;
+                scoreSpan.textContent = score;
+                
+                setTimeout(() => {
+                    if (questionCount < TOTAL_QUESTIONS) {
+                        currentIdiom = selectedAnswer;
+                        if (idiomsDB[currentIdiom]) {
+                            setNewQuestion();
+                        } else {
+                            const idioms = Object.keys(idiomsDB);
+                            currentIdiom = idioms[Math.floor(Math.random() * idioms.length)];
+                            setNewQuestion();
+                        }
+                    } else {
+                        endGame('恭喜！你完成了所有题目！');
+                    }
+                }, 800);
+            } else {
+                playWrongSound();
+                button.classList.add('wrong');
+                const correctButton = Array.from(buttons)
+                    .find(btn => btn.textContent === correctAnswer);
+                correctButton.classList.add('correct');
+                setTimeout(() => {
+                    endGame('回答错误，游戏结束！');
+                }, 1000);
+            }
+        }
+
+        function endGame(message) {
+            clearInterval(timerInterval);
+            document.getElementById('timer').style.display = 'none';
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+            
+            const percentage = ((score / TOTAL_QUESTIONS) * 100).toFixed(1);
+            alert(`${message}\n最终得分：${score}分\n完成题目：${questionCount}/${TOTAL_QUESTIONS}题\n完成度：${percentage}%`);
+            
+            startBtn.style.display = 'block';
+            startBtn.textContent = '重新开始';
+            document.querySelector('.difficulty-select').style.display = 'flex';
+            currentIdiomDiv.textContent = '';
+            optionsDiv.innerHTML = '';
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function toggleMusic() {
+            isMusicOn = !isMusicOn;
+            musicBtn.textContent = `音乐：${isMusicOn ? '开' : '关'}`;
+            if (isMusicOn) {
+                // 添加错误处理
+                try {
+                    let playPromise = bgMusic.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(_ => {
+                            console.log('开始播放音乐');
+                        })
+                        .catch(error => {
+                            console.log('播放失败:', error);
+                        });
+                    }
+                } catch (e) {
+                    console.log('播放出错:', e);
+                }
+            } else {
+                bgMusic.pause();
+            }
+        }
+
+        function toggleSound() {
+            isSoundOn = !isSoundOn;
+            soundBtn.textContent = `音效：${isSoundOn ? '开' : '关'}`;
+        }
+
+        function playCorrectSound() {
+            if (isSoundOn) {
+                correctSound.currentTime = 0;
+                correctSound.play();
+            }
+        }
+
+        function playWrongSound() {
+            if (isSoundOn) {
+                wrongSound.currentTime = 0;
+                wrongSound.play();
+            }
+        }
+
+        // 添加页面加载时的音频初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 预加载音频
+            bgMusic.load();
+            correctSound.load();
+            wrongSound.load();
+            
+            // 设置音量
+            bgMusic.volume = 0.3;
+            correctSound.volume = 0.5;
+            wrongSound.volume = 0.5;
+
+            // 检查音频文件
+            checkAudio();
+
+            // 添加音频加载事件监听
+            bgMusic.addEventListener('loadeddata', () => {
+                console.log('背景音乐已加载');
+            });
+
+            bgMusic.addEventListener('error', (e) => {
+                console.log('音频加载错误:', e);
+            });
+        });
+
+        // 添加音频状态检查
+        function checkAudio() {
+            console.log('背景音乐状态:', bgMusic.readyState);
+            console.log('音频文件是否存在:', bgMusic.error);
+        }
+
+        function setDifficulty(difficulty) {
+            currentDifficulty = difficulty;
+            timeLimit = difficultySettings[difficulty].time;
+            TOTAL_QUESTIONS = difficultySettings[difficulty].questions;
+            
+            // 更新进度显示
+            document.querySelector('.stat-item:last-child .stat-value').innerHTML = 
+                `<span id="question-count">0</span>/${TOTAL_QUESTIONS}`;
+            
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.style.opacity = '0.7';
+            });
+            document.querySelector(`.difficulty-btn.${difficulty}`).style.opacity = '1';
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = timeLimit;
+            document.getElementById('timer').style.display = 'block';
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                timeLeft -= 100; // 每0.1秒更新一次
+                updateTimerDisplay();
+
+                if (timeLeft <= 3000) { // 最后3秒显示警告
+                    document.getElementById('timer').classList.add('warning');
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    endGame('时间到！游戏结束！');
+                }
+            }, 100);
+        }
+
+        function updateTimerDisplay() {
+            const seconds = (timeLeft / 1000).toFixed(1);
+            document.getElementById('time-left').textContent = seconds;
+        }
+    </script>
+</body>
+</html>
